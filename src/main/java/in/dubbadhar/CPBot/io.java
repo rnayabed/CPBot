@@ -1,7 +1,6 @@
 package in.dubbadhar.CPBot;
 
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.util.HashMap;
 
 public class io {
@@ -11,12 +10,12 @@ public class io {
 
         StringBuilder configRaw = new StringBuilder();
         int c;
-        FileReader fr = new FileReader(new File(io.class.getResource("config.properties").toExternalForm().substring(5)));
-        while((c = fr.read()) != -1)
+        FileReader fileReader = new FileReader(new File(io.class.getResource("config.properties").toExternalForm().substring(5)));
+        while((c = fileReader.read()) != -1)
         {
             configRaw.append((char)c);
         }
-        fr.close();
+        fileReader.close();
 
         String lineBreakChar = "\n";
         String configStr = configRaw.toString();
@@ -29,5 +28,21 @@ public class io {
         }
 
         return config;
+    }
+
+    public static void updateConfig(HashMap<String,String> config) throws Exception
+    {
+        FileWriter fileWriter = new FileWriter(new File(io.class.getResource("config.properties").toExternalForm().substring(5)));
+        for(String eachKey : config.keySet())
+        {
+            fileWriter.write(eachKey+" = "+config.get(eachKey)+"\n");
+        }
+        fileWriter.close();
+    }
+
+    public static String readLine() throws Exception
+    {
+        BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+        return bf.readLine();
     }
 }

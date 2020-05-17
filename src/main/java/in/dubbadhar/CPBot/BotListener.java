@@ -13,6 +13,9 @@ import org.jsoup.nodes.Document;
 
 import java.awt.*;
 
+import static in.dubbadhar.CPBot.Main.REPO_LINK;
+import static in.dubbadhar.CPBot.Main.VERSION;
+
 
 public class BotListener extends ListenerAdapter {
 
@@ -73,9 +76,9 @@ public class BotListener extends ListenerAdapter {
                     "Twitter : dubbadhar\n" +
                     "Discord : dubbadhar#5744\n" +
                     "GitHub : dubbadhar\n\n" +
-                    "This Bot fetches problems from CodeForces. Support for Codechef coming soon!\n" +
-                    "Source : https://github.com/dubbadhar/CPBot\n" +
-                    "Version : 1.0");
+                    "This Bot fetches problems from CodeForces.\n" +
+                    "Source : "+REPO_LINK+
+                    "\nVersion : "+VERSION);
             Message m = new MessageBuilder().setEmbed(aboutEmbedBuilder.build()).build();
             channel.sendMessage(m).queue();
         }
