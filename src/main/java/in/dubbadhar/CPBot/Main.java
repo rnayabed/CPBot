@@ -2,6 +2,7 @@ package in.dubbadhar.CPBot;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import org.jsoup.nodes.Document;
 
 import java.io.BufferedReader;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 
 public class Main {
 
-    final static String VERSION = "1.1";
+    final static String VERSION = "1.2";
     final static String REPO_LINK = "https://github.com/dubbadhar/CPBot";
 
     public static void main(String[] args) throws Exception
@@ -31,11 +32,14 @@ public class Main {
             else
             {
                 System.out.println("\nStarting bot ...");
-                JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("DISCORD_BOT_TOKEN"));
-                jdaBuilder.setActivity(Activity.of(Activity.ActivityType.LISTENING, "_help"));
-                jdaBuilder.addEventListeners(new BotListener());
-                jdaBuilder.build();
-                System.out.println("\n... Done!");
+
+
+                DefaultShardManagerBuilder.createDefault(config.get("DISCORD_BOT_TOKEN"))
+                    .setActivity(Activity.of(Activity.ActivityType.LISTENING, "_help"))
+                    .addEventListeners(new BotListener())
+                    .build();
+
+                System.out.println("... Done!");
             }
         }
         else if(userChoice.equals("2"))
