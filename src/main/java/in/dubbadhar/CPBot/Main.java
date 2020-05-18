@@ -1,6 +1,5 @@
 package in.dubbadhar.CPBot;
 
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -12,7 +11,7 @@ import java.util.HashMap;
 
 public class Main {
 
-    final static String VERSION = "1.2";
+    final static String VERSION = "1.3";
     final static String REPO_LINK = "https://github.com/dubbadhar/CPBot";
 
     public static void main(String[] args) throws Exception
@@ -34,13 +33,10 @@ public class Main {
             {
                 System.out.println("\nStarting bot ...");
 
-                JDABuilder shardBuilder = JDABuilder.createDefault(config.get("DISCORD_BOT_TOKEN"));
-                shardBuilder.addEventListeners(new BotListener());
-                for (int i = 0; i < 5; i++)
-                {
-                    shardBuilder.useSharding(i, 5)
-                            .build();
-                }
+                DefaultShardManagerBuilder.createDefault(config.get("DISCORD_BOT_TOKEN"))
+                    .setActivity(Activity.of(Activity.ActivityType.LISTENING, "_help"))
+                    .addEventListeners(new BotListener())
+                    .build();
 
                 System.out.println("... Done!");
             }
