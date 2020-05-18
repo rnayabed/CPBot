@@ -16,6 +16,14 @@ public class Main {
 
     public static void main(String[] args) throws Exception
     {
+        HashMap<String, String> config = io.getConfig();
+
+        if(args[0].equals("-auto-start"))
+        {
+            startBot(config);
+            return;
+        }
+
         System.out.println("Menu\n" +
                 "1. Start\n" +
                 "2. Edit Discord Bot API Key\n" +
@@ -23,23 +31,11 @@ public class Main {
                 "4. Exit\n");
         String userChoice = io.readLine();
 
-        HashMap<String, String> config = io.getConfig();
+
 
         if(userChoice.equals("1"))
         {
-            if(config.get("DISCORD_BOT_TOKEN").equals("NULL"))
-                System.out.println("\nDiscord Bot token is not provided. Unable to Start. Run option 2 to change the key.");
-            else
-            {
-                System.out.println("\nStarting bot ...");
-
-                DefaultShardManagerBuilder.createDefault(config.get("DISCORD_BOT_TOKEN"))
-                    .setActivity(Activity.of(Activity.ActivityType.LISTENING, "_help"))
-                    .addEventListeners(new BotListener())
-                    .build();
-
-                System.out.println("... Done!");
-            }
+            startBot(config);
         }
         else if(userChoice.equals("2"))
         {
@@ -76,6 +72,23 @@ public class Main {
         else
         {
             System.out.println("\nInvalid Input.\nAbort");
+        }
+    }
+
+    static void startBot(HashMap<String,String> config) throws Exception
+    {
+        if(config.get("DISCORD_BOT_TOKEN").equals("NULL"))
+            System.out.println("\nDiscord Bot token is not provided. Unable to Start. Run option 2 to change the key.");
+        else
+        {
+            System.out.println("\nStarting bot ...");
+
+            DefaultShardManagerBuilder.createDefault(config.get("DISCORD_BOT_TOKEN"))
+                    .setActivity(Activity.of(Activity.ActivityType.LISTENING, "_help"))
+                    .addEventListeners(new BotListener())
+                    .build();
+
+            System.out.println("... Done!");
         }
     }
 }
