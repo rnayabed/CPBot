@@ -1,5 +1,6 @@
 package in.dubbadhar.CPBot;
 
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -33,11 +34,13 @@ public class Main {
             {
                 System.out.println("\nStarting bot ...");
 
-
-                DefaultShardManagerBuilder.createDefault(config.get("DISCORD_BOT_TOKEN"))
-                    .setActivity(Activity.of(Activity.ActivityType.LISTENING, "_help"))
-                    .addEventListeners(new BotListener())
-                    .build();
+                JDABuilder shardBuilder = JDABuilder.createDefault(config.get("DISCORD_BOT_TOKEN"));
+                shardBuilder.addEventListeners(new BotListener());
+                for (int i = 0; i < 5; i++)
+                {
+                    shardBuilder.useSharding(i, 5)
+                            .build();
+                }
 
                 System.out.println("... Done!");
             }
