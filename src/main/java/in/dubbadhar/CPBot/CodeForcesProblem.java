@@ -268,7 +268,6 @@ public class CodeForcesProblem extends Thread {
                     {
                         int maxPages = getMaximumPages();
                         int randomPage = ((int) (Math.random() * maxPages));
-                        System.out.println(randomPage);
                         PageLoadStatus pageLoadStatus2 = loadFilteredPage(args, randomPage);
                         if(!pageLoadStatus2.isSuccess())
                         {
@@ -629,7 +628,6 @@ public class CodeForcesProblem extends Thread {
             document = Jsoup.connect("https://codeforces.com/problemset/page/"+pageNo+order+"?tags="+tags.toString()).get();
         }
 
-        System.out.println("https://codeforces.com/problemset/page/"+pageNo+order+"?tags="+tags.toString());
         return new PageLoadStatus(true);
     }
 }

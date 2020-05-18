@@ -30,6 +30,7 @@ public class BotListener extends ListenerAdapter {
 
         if (rawMsg.equals("_help"))
         {
+            plnMsgReceived(rawMsg);
             channel.sendMessage("Available Commands\n\n" +
                     "`_list`\n" +
                     "**To get a list of problems**\n" +
@@ -63,14 +64,17 @@ public class BotListener extends ListenerAdapter {
         }
         else if(rawMsg.startsWith("_list"))
         {
+            plnMsgReceived(rawMsg);
             new CodeForcesProblem(CodeForcesProblem.queryType.LIST, channel, args);
         }
         else if(rawMsg.startsWith("_get"))
         {
+            plnMsgReceived(rawMsg);
             new CodeForcesProblem(CodeForcesProblem.queryType.GET, channel, args);
         }
         else if(rawMsg.equals("_about"))
         {
+            plnMsgReceived(rawMsg);
             EmbedBuilder aboutEmbedBuilder = new EmbedBuilder();
             aboutEmbedBuilder.setTitle("About");
             aboutEmbedBuilder.setColor(Color.RED);
@@ -86,7 +90,13 @@ public class BotListener extends ListenerAdapter {
         }
         else if(rawMsg.startsWith("_random"))
         {
+            plnMsgReceived(rawMsg);
             new CodeForcesProblem(CodeForcesProblem.queryType.RANDOM, channel, args);
         }
+    }
+
+    void plnMsgReceived(String raw)
+    {
+        System.out.println(raw);
     }
 }
