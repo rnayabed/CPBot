@@ -51,13 +51,20 @@ public class CodeForcesProblem extends Thread {
 
     public int getMaximumPages()
     {
-        Elements liElements = document.getElementsByClass("pagination").first().getElementsByTag("li");
-        int maxPages;
-        if(liElements.last().text().contains("→"))
-            maxPages = Integer.parseInt(liElements.get(liElements.size()-2).text());
-        else
-            maxPages = Integer.parseInt(liElements.last().text());
-        return maxPages;
+        try
+        {
+            Elements liElements = document.getElementsByClass("pagination").first().getElementsByTag("li");
+            int maxPages;
+            if(liElements.last().text().contains("→"))
+                maxPages = Integer.parseInt(liElements.get(liElements.size()-2).text());
+            else
+                maxPages = Integer.parseInt(liElements.last().text());
+            return maxPages;
+        }
+        catch (NullPointerException e)
+        {
+            return 1;
+        }
     }
 
     Message msg;
@@ -256,7 +263,20 @@ public class CodeForcesProblem extends Thread {
                 else
                 {
                     PageLoadStatus pageLoadStatus = loadFilteredPage(args);
-                    if(!pageLoadStatus.isSuccess())
+
+                    if(pageLoadStatus.isSuccess())
+                    {
+                        int maxPages = getMaximumPages();
+                        int randomPage = ((int) (Math.random() * maxPages));
+                        System.out.println(randomPage);
+                        PageLoadStatus pageLoadStatus2 = loadFilteredPage(args, randomPage);
+                        if(!pageLoadStatus2.isSuccess())
+                        {
+                            sendMessage(pageLoadStatus.getErr());
+                            return;
+                        }
+                    }
+                    else
                     {
                         sendMessage(pageLoadStatus.getErr());
                         return;
@@ -433,9 +453,21 @@ public class CodeForcesProblem extends Thread {
         }
     }
 
-    String err;
 
-    public PageLoadStatus loadFilteredPage(String[] args) throws Exception
+    public PageLoadStatus loadFilteredPage(String[] args)
+    {
+       try
+       {
+           return loadFilteredPage(args, 0);
+       }
+       catch (Exception e)
+       {
+           e.printStackTrace();
+           return new PageLoadStatus(e.getLocalizedMessage());
+       }
+    }
+
+    public PageLoadStatus loadFilteredPage(String[] args, int pageNo) throws Exception
     {
         if(args.length == 1)
         {
@@ -443,7 +475,6 @@ public class CodeForcesProblem extends Thread {
             return new PageLoadStatus(true);
         }
 
-        int pageNo = 0;
         String order = "";
         StringBuilder tags = new StringBuilder();
         for(int i=0;i<args.length;i++)
@@ -560,6 +591,9 @@ public class CodeForcesProblem extends Thread {
             }
             else if(args[i].equals("-o"))
             {
+                if(args[0].equals("_random"))
+                    return new PageLoadStatus("`_random` doesn't support `-o` argument.");
+
                 try
                 {
                     switch (args[i + 1]) {
@@ -594,6 +628,8 @@ public class CodeForcesProblem extends Thread {
         {
             document = Jsoup.connect("https://codeforces.com/problemset/page/"+pageNo+order+"?tags="+tags.toString()).get();
         }
+
+        System.out.println("https://codeforces.com/problemset/page/"+pageNo+order+"?tags="+tags.toString());
         return new PageLoadStatus(true);
     }
 }

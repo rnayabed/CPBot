@@ -37,6 +37,7 @@ public class BotListener extends ListenerAdapter {
                     "   `-p {Page No.}`\n" +
                     "   `-d {Difficulty Rating}`\n" +
                     "   `-d {Minimum Difficulty}-{Maximum Difficulty}`\n" +
+                    "   `-t \"{Tag1},{Tag2},{TagN}\"\n" +
                     "   `-o {Order}`\n" +
                     "   `{Order}` can be any one of the following ONLY\n" +
                     "       `diff-asc` : Ascending Difficulty\n" +
@@ -47,7 +48,8 @@ public class BotListener extends ListenerAdapter {
                     "**To get a random problem**\n" +
                     "**Arguments (Optional)**\n" +
                     "   `-d {Difficulty Rating}`\n" +
-                    "   `-d {Minimum Difficulty}-{Maximum Difficulty}`\n\n\n" +
+                    "   `-d {Minimum Difficulty}-{Maximum Difficulty}`\n" +
+                    "   `-t \"{Tag1},{Tag2},{TagN}\"\n\n\n" +
                     "`_get`\n" +
                     "**To get a particular problem**\n" +
                     "**Arguments (Required)**\n" +

@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class Main {
 
-    final static String VERSION = "1.0";
+    final static String VERSION = "1.1";
     final static String REPO_LINK = "https://github.com/dubbadhar/CPBot";
 
     public static void main(String[] args) throws Exception
@@ -32,7 +32,7 @@ public class Main {
             {
                 System.out.println("\nStarting bot ...");
                 JDABuilder jdaBuilder = JDABuilder.createDefault(config.get("DISCORD_BOT_TOKEN"));
-                jdaBuilder.setActivity(Activity.of(Activity.ActivityType.DEFAULT, "Type _help"));
+                jdaBuilder.setActivity(Activity.of(Activity.ActivityType.LISTENING, "_help"));
                 jdaBuilder.addEventListeners(new BotListener());
                 jdaBuilder.build();
                 System.out.println("\n... Done!");
