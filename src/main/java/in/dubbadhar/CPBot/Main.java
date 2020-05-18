@@ -18,10 +18,13 @@ public class Main {
     {
         HashMap<String, String> config = io.getConfig();
 
-        if(args[0].equals("-auto-start"))
+        if(args.length>0)
         {
-            startBot(config);
-            return;
+            if(args[0].equals("-auto-start"))
+            {
+                startBot(config);
+                return;
+            }
         }
 
         System.out.println("Menu\n" +
