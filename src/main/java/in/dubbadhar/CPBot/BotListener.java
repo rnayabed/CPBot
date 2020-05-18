@@ -30,7 +30,7 @@ public class BotListener extends ListenerAdapter {
 
         if (rawMsg.equals("_help"))
         {
-            plnMsgReceived(rawMsg, event.getGuild().getName(), channel.getName());
+            plnMsgReceived(rawMsg, event);
             channel.sendMessage("Available Commands\n\n" +
                     "`_list`\n" +
                     "**To get a list of problems**\n" +
@@ -64,17 +64,17 @@ public class BotListener extends ListenerAdapter {
         }
         else if(rawMsg.startsWith("_list"))
         {
-            plnMsgReceived(rawMsg, event.getGuild().getName(), channel.getName());
+            plnMsgReceived(rawMsg, event);
             new CodeForcesProblem(CodeForcesProblem.queryType.LIST, channel, args);
         }
         else if(rawMsg.startsWith("_get"))
         {
-            plnMsgReceived(rawMsg, event.getGuild().getName(), channel.getName());
+            plnMsgReceived(rawMsg, event);
             new CodeForcesProblem(CodeForcesProblem.queryType.GET, channel, args);
         }
         else if(rawMsg.equals("_about"))
         {
-            plnMsgReceived(rawMsg, event.getGuild().getName(), channel.getName());
+            plnMsgReceived(rawMsg, event);
             EmbedBuilder aboutEmbedBuilder = new EmbedBuilder();
             aboutEmbedBuilder.setTitle("About");
             aboutEmbedBuilder.setColor(Color.RED);
@@ -90,13 +90,16 @@ public class BotListener extends ListenerAdapter {
         }
         else if(rawMsg.startsWith("_random"))
         {
-            plnMsgReceived(rawMsg, event.getGuild().getName(), channel.getName());
+            plnMsgReceived(rawMsg, event);
             new CodeForcesProblem(CodeForcesProblem.queryType.RANDOM, channel, args);
         }
     }
 
-    void plnMsgReceived(String raw, String guildName, String channelName)
+    void plnMsgReceived(String raw, MessageReceivedEvent event)
     {
-        System.out.println("Message Received from \""+guildName+"\", #"+channelName+"\n"+raw+"\n");
+        System.out.print("Message Received from "+event.getMessage().getAuthor());
+        if(event.getChannelType().isGuild())
+            System.out.print(", \""+event.getGuild().getName()+"\", #"+event.getChannel().getName());
+        System.out.println("\n"+raw+"\n");
     }
 }
