@@ -69,5 +69,13 @@ public class Main {
                     "Source Code : "+REPO_LINK +
                     "\nVersion : "+VERSION);
         }
+        else if(userChoice.equals("4"))
+        {
+            System.out.println("\nQuitting ...");
+        }
+        else
+        {
+            System.out.println("\nInvalid Input.\nAbort");
+        }
     }
 }
