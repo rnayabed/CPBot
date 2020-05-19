@@ -5,8 +5,6 @@ Support for other websites coming soon.
 
 Current version : 1.3
 
-Donations welcomed [here](https://paypal.me/ladiesman6969).
-
 Built with Java 
 
 ## Available Commands
