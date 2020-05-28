@@ -1,20 +1,11 @@
 package in.dubbadhar.CPBot;
 
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
-import javax.swing.*;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 public class CodeForcesProblem extends Thread {
     enum queryType{
@@ -40,13 +31,9 @@ public class CodeForcesProblem extends Thread {
     public void loadCodeForcesDefaultProblemSite() throws Exception
     {
         if(document==null)
-        {
             document = Jsoup.connect("https://codeforces.com/problemset").get();
-        }
         else if(!document.location().equals("https://codeforces.com/problemset"))
-        {
             document = Jsoup.connect("https://codeforces.com/problemset").get();
-        }
     }
 
     public int getMaximumPages()
@@ -292,7 +279,7 @@ public class CodeForcesProblem extends Thread {
                     Elements problemParts = problems.get(randomProblem).getElementsByTag("td");
                     String problemID = problemParts.get(0).text();
                     msg.delete().queue();
-                    new CodeForcesProblem(CodeForcesProblem.queryType.GET, channel, new String[]{"_get",problemID});
+                    new CodeForcesProblem(CodeForcesProblem.queryType.GET, channel, new String[]{"cp!get",problemID});
                 }
             }
         }
@@ -308,54 +295,47 @@ public class CodeForcesProblem extends Thread {
         Elements explanationChildren = parent.children();
         for(Element eachElement : explanationChildren)
         {
-            if(eachElement.tagName().equals("p"))
-            {
-                output.append(formatLaTeX(eachElement.text())).append("\n");
+            switch (eachElement.tagName()) {
+                case "p" -> {
+                    output.append(formatLaTeX(eachElement.text())).append("\n");
 
-                String imageURL = searchForImage(eachElement);
-                if(imageURL!=null)
-                {
-                    sendMessage(output.toString());
-                    output.setLength(0);
-                    sendMessage(imageURL);
+                    String imageURL = searchForImage(eachElement);
+                    if (imageURL != null) {
+                        sendMessage(output.toString());
+                        output.setLength(0);
+                        sendMessage(imageURL);
+                    }
                 }
-            }
-            else if(eachElement.tagName().equals("center"))
-            {
-                String imageURL = searchForImage(eachElement);
-                if(imageURL!=null)
-                {
-                    sendMessage(output.toString());
-                    output.setLength(0);
-                    sendMessage(imageURL);
+                case "center" -> {
+                    String imageURL = searchForImage(eachElement);
+                    if (imageURL != null) {
+                        sendMessage(output.toString());
+                        output.setLength(0);
+                        sendMessage(imageURL);
+                    }
                 }
-            }
-            else if(eachElement.tagName().equals("ul"))
-            {
-                Elements lis = eachElement.getElementsByTag("li");
-                for(Element li : lis)
-                {
-                    output.append(" * ")
-                            .append(formatLaTeX(li.text()))
-                            .append("\n");
+                case "ul" -> {
+                    Elements lis = eachElement.getElementsByTag("li");
+                    for (Element li : lis) {
+                        output.append(" **•** ")
+                                .append(formatLaTeX(li.text()))
+                                .append("\n");
+                    }
+                    output.append("\n");
                 }
-                output.append("\n");
-            }
-            else if(eachElement.tagName().equals("div"))
-            {
-                if(eachElement.className().equals("input"))
-                {
-                    output.append("\n\nInput : \n```\n");
-                    Element pre = eachElement.getElementsByTag("pre").first();
-                    output.append(pre.html().replace("<br>","\n"))
-                            .append("\n```");
-                }
-                if(eachElement.className().equals("output"))
-                {
-                    output.append("\nOutput : \n```\n");
-                    Element pre = eachElement.getElementsByTag("pre").first();
-                    output.append(pre.text())
-                            .append("\n```");
+                case "div" -> {
+                    if (eachElement.className().equals("input")) {
+                        output.append("\n\nInput : \n```\n");
+                        Element pre = eachElement.getElementsByTag("pre").first();
+                        output.append(pre.html().replace("<br>", "\n"))
+                                .append("\n```");
+                    }
+                    if (eachElement.className().equals("output")) {
+                        output.append("\nOutput : \n```\n");
+                        Element pre = eachElement.getElementsByTag("pre").first();
+                        output.append(pre.text())
+                                .append("\n```");
+                    }
                 }
             }
 
@@ -371,8 +351,6 @@ public class CodeForcesProblem extends Thread {
 
     public String formatLaTeX(String text)
     {
-        text = text.replace("$$$","*");
-
         int i;
 
         //pmod
@@ -381,15 +359,6 @@ public class CodeForcesProblem extends Thread {
             int j = text.indexOf("}");
             text = text.substring(0,i)+"(mod "+text.substring(i+6,j)+")"+text.substring(j+1);
         }
-
-        //\le
-        text = text.replace("\\le","≤");
-
-        //\equiv
-        text = text.replace("\\equiv","≡");
-
-        //\neq
-        text = text.replace("\\neq","≠");
 
         //frac
         while((i = text.indexOf("\\frac{"))>-1)
@@ -400,26 +369,27 @@ public class CodeForcesProblem extends Thread {
             text = text.substring(0,k)+text.substring(k+1);
         }
 
-        //matrix
-        text = text.replace("\\end{matrix}","```\n").replace("\\begin{matrix}","\n```\n").replace("\\\\","\n");
 
-        //plus minus
-        text = text.replace("\\pm","±");
-
-        //multiply
-        text = text.replace("\\times","×");
-
-        text = text.replace("\\div","÷");
-        text = text.replace("\\leq","≤");
-        text = text.replace("\\geq","≥");
-        text = text.replace("\\ge","≥");
-        text = text.replace("^\\circ","°");
-        text = text.replace("\\sim","∼");
-        text = text.replace("\\mu","µ");
-        text = text.replace("\\approx","≈");
-        text = text.replace("\\mu","µ");
-        text = text.replace("\\ldots","…");
-
+        text = text.replace("*","\\*") //Prevent unnecessary formatting
+                .replace("$$$","*")//$$$ to italics
+                .replace("\\end{matrix}","```\n") //Matrix
+                .replace("\\begin{matrix}","\n```\n") //Matrix
+                .replace("\\\\","\n") //Matrix
+                .replace("\\pm","±") // Plus Minus
+                .replace("\\times","×") // multiply
+                .replace("\\equiv","≡") // Equivalent
+                .replace("\\neq","≠") //Not Equal To
+                .replace("\\div","÷") // Division
+                .replace("\\leq","≤") //Less Than Or Equal To
+                .replace("\\le","≤") // Less Than Or Equal To
+                .replace("\\geq","≥") // Greater Than Or Equal To
+                .replace("\\ge","≥") // Greater Than Or Equal To
+                .replace("\\sim","∼") // Tilde
+                .replace("^\\circ","°") // Degree
+                .replace("\\approx","≈") // Approximate
+                .replace("\\mu","µ") // Meu
+                .replace("\\ldots","…") // Three Dots
+                .replace("\\cdot","⋅"); // Multiplication Dot
 
         return text;
     }
@@ -478,143 +448,84 @@ public class CodeForcesProblem extends Thread {
         StringBuilder tags = new StringBuilder();
         for(int i=0;i<args.length;i++)
         {
-            if(args[i].equals("-p"))
-            {
-                try
-                {
-                    String pgNo = args[i+1];
+            if(i == (args.length - 1))
+                return new PageLoadStatus("Invalid argument usage. Check `cp!help`");
+
+            switch (args[i]) {
+                case "-p"-> {
+                    String pgNo = args[i + 1];
                     pageNo = Integer.parseInt(pgNo);
-                    if(pageNo < 1)
-                    {
+                    if (pageNo < 1)
                         return new PageLoadStatus("Page no 0 isnt possible :/");
-                    }
                 }
-                catch (ArrayIndexOutOfBoundsException e)
-                {
-                    return new PageLoadStatus("Provide a number when using `-p` argument -_-");
-                }
-            }
-            else if(args[i].equals("-d"))
-            {
-                try
-                {
-                    if(args[i+1].contains("-"))
-                    {
-                        String[] difficulty = args[i+1].split("-");
-                        if(difficulty.length == 2)
-                        {
-                            try
-                            {
+                case "-d"-> {
+                    if (args[i + 1].contains("-")) {
+                        String[] difficulty = args[i + 1].split("-");
+                        if (difficulty.length == 2) {
+                            try {
                                 int minDiff = Integer.parseInt(difficulty[0]);
                                 int maxDiff = Integer.parseInt(difficulty[1]);
-                                if(minDiff>maxDiff)
-                                {
+                                if (minDiff > maxDiff)
                                     return new PageLoadStatus("Min Diff cant be greater than Max diff :/");
-                                }
                                 else
-                                {
                                     tags.append(difficulty[0]).append("-").append(difficulty[1]).append(",");
-                                }
-                            }
-                            catch (NumberFormatException e)
-                            {
+                            } catch (NumberFormatException e) {
                                 return new PageLoadStatus("Provide a number when using -d argument -_-");
                             }
+                        } else {
+                            return new PageLoadStatus("Incorrect `-d` argument usage. Check `cp!help`");
                         }
-                        else
-                        {
-                            return new PageLoadStatus("Incorrect `-d` argument usage. Check `_help`");
-                        }
-                    }
-                    else
-                    {
-                        try
-                        {
-                            int diff = Integer.parseInt(args[i+1]);
+                    } else {
+                        try {
+                            int diff = Integer.parseInt(args[i + 1]);
                             tags.append(diff).append("-").append(diff).append(",");
-                        }
-                        catch (NumberFormatException e)
-                        {
+                        } catch (NumberFormatException e) {
                             return new PageLoadStatus("Difficulty should be a number");
                         }
                     }
                 }
-                catch (ArrayIndexOutOfBoundsException e)
-                {
-                    return new PageLoadStatus("Incorrect `-d` argument usage. Check `_help`.");
-                }
-            }
-            else if(args[i].equals("-t"))
-            {
-                try
-                {
-                    if(args[i+1].startsWith("\""))
-                    {
-                        if(args[i+1].endsWith("\""))
-                        {
-                            String finalS = args[i+1].replace(" ","%20");
+                case "-t"-> {
+                    if (args[i + 1].startsWith("\"")) {
+                        if (args[i + 1].endsWith("\"")) {
+                            String finalS = args[i + 1].replace(" ", "%20");
                             tags.append(finalS, 1, finalS.lastIndexOf('"'));
-                        }
-                        else
-                        {
+                        } else {
                             StringBuilder fulltags = new StringBuilder(args[i + 1].substring(1));
                             boolean quoteFound = false;
-                            for(int j = i+2;j<args.length;j++)
-                            {
-                                if(args[j].indexOf('"')>-1)
-                                {
-                                    quoteFound=true;
+                            for (int j = i + 2; j < args.length; j++) {
+                                if (args[j].indexOf('"') > -1) {
+                                    quoteFound = true;
                                     fulltags.append("%20").append(args[j], 0, args[j].indexOf('"'));
                                     break;
                                 }
                             }
-                            if(quoteFound)
-                            {
-                                tags.append(fulltags.toString().replace(" ","%20")).append(",");
-                            }
+                            if (quoteFound)
+                                tags.append(fulltags.toString().replace(" ", "%20")).append(",");
                             else
-                            {
                                 return new PageLoadStatus("You forgot to close double quotes!");
-                            }
                         }
-                    }
-                    else
-                    {
+                    } else {
                         return new PageLoadStatus("You need to enclose tags with double quotes");
                     }
                 }
-                catch (ArrayIndexOutOfBoundsException e)
-                {
-                    return new PageLoadStatus("Incorrect `-t` argument usage. Check `_help`.");
-                }
-            }
-            else if(args[i].equals("-o"))
-            {
-                if(args[0].equals("_random"))
-                    return new PageLoadStatus("`_random` doesn't support `-o` argument.");
+                case "-o"-> {
+                    if (args[0].equals("_random"))
+                        return new PageLoadStatus("`cp!random` doesn't support `-o` argument.");
 
-                try
-                {
-                    switch (args[i + 1]) {
-                        case "diff-asc":
-                            order = "?order=BY_RATING_ASC&";
-                            break;
-                        case "diff-des":
-                            order = "?order=BY_RATING_DESC&";
-                            break;
-                        case "solv-asc":
-                            order = "?order=BY_SOLVED_ASC&";
-                            break;
-                        case "solv-des":
-                            order = "?order=BY_SOLVED_DESC&";
-                            break;
-                        default:
-                            return new PageLoadStatus("Incorrect `-o` argument usage. Check `_help`.");
+                    try {
+                        order = switch(args[i+1]) {
+                            case "diff-asc"-> "?order=BY_RATING_ASC&";
+                            case "diff-des"-> "?order=BY_RATING_DESC&";
+                            case "solv-asc"-> "?order=BY_SOLVED_ASC&";
+                            case "solv-des"-> "?order=BY_SOLVED_DESC&";
+                            default -> throw new IllegalStateException();
+                        };
+                    } catch (IllegalStateException e) {
+                        return new PageLoadStatus("Incorrect `-o` argument usage. Check `cp!help`.");
                     }
                 }
-                catch (ArrayIndexOutOfBoundsException e)
-                {
-                    return new PageLoadStatus("Incorrect `-o` argument usage. Check `_help`.");
+                default -> {
+                    return new PageLoadStatus("Invalid argument. Check `cp!help`");
                 }
             }
         }
