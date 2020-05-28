@@ -1,17 +1,25 @@
 # CPBot
 
-A Discord bot for fetching Competitive Programming Problems from Codechef
+A Discord bot for fetching Competitive Programming Problems from Code Forces.  
 Support for other websites coming soon.
 
-Current version : 1.3
+####[Invite Link to add Bot to your server](https://discord.com/api/oauth2/authorize?client_id=711231840484065280&permissions=76800&scope=bot)
 
-Built with Java 
+You can build it and run your own instance as well, but you need to have a [Discord Bot Token](https://www.writebots.com/discord-bot-token/).
+## Build
+**Make sure you have Maven 3.6.0+ and Java 14+**
+
+1. Run `mvn clean install exec:java` and select option 2 from menu to set your Discord Bot Token.
+
+2. Run `mvn exec:java` and select option 1 from menu to start the bot.
+
+**You can also start the bot with `mvn exec:java -Dexec.args="-auto-start"` on start up, without facing the menu.**
 
 ## Available Commands
-* `_random` : Gets a random problem
-* `_list` : Returns a table of available problems to solve
-* `_get` : Fetches details about a specific problem
-* `_about` : Gets details of the bot
+* `cp!random` : Gets a random problem
+* `cp!list` : Returns a table of available problems to solve
+* `cp!get` : Fetches details about a specific problem
+* `cp!about` : Gets details of the bot
 
 ### `_random`
 Optional Arguments :
@@ -36,7 +44,16 @@ Required Argument :
 * `{Problem ID}` : Problem ID of the particular problem
 
 ### `_about`
-Gets details of the bot
+Get details of the bot.
+
+## Examples
+`cp!list -d 2000 -o diff-asc`
+`cp!random -d 800-1200`  
+`cp!get 1A`  
+
+## Libraries
+* [JDA](https://github.com/DV8FromTheWorld/JDA) - Java Discord API
+* [JSoup](https://jsoup.org/) - For Webscraping from Code Forces
 
 ## License
 [GNU GPL v3 License](https://github.com/dubbadhar/CPBot/blob/master/LICENSE)

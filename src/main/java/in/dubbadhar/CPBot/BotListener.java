@@ -122,7 +122,8 @@ public class BotListener extends ListenerAdapter {
                                         "Twitter : dubbadhar\n" +
                                         "Discord : dubbadhar#5744\n" +
                                         "GitHub : dubbadhar\n\n" +
-                                        "This Bot fetches problems from CodeForces.\n" +
+                                        "This Bot fetches problems from Code Forces.\n" +
+                                        "Support for other websites coming soon.\n" +
                                         "Source : "+config.get("REPO_LINK")+
                                         "\nVersion : "+config.get("VERSION"))
                                 .build())
