@@ -22,13 +22,13 @@ Or you can also build it and run your own instance but you need to have a [Disco
 * `cp!get` : Fetches details about a specific problem
 * `cp!about` : Gets details of the bot
 
-### `_random`
+### `cp!random`
 Optional Arguments :
 * `-t "{Tag1},{Tag2},{Tag3},...,{TagN}"` : Allows user to add preferred tags
 * `-d {Difficulty Min}-{Difficulty-Max}` : Allows user to set a difficulty range
 * `-d {Difficulty}` : Allows user to se a specific difficulty level
 
-### `_list`
+### `cp!list`
 Optional Arguments :
 * `-t "{Tag1},{Tag2},{Tag3},...,{TagN}"` : Allows user to add preferred tags
 * `-o {order}` : Sets the order of sorting of the list  
@@ -40,11 +40,11 @@ Optional Arguments :
 * `-d {Difficulty Min}-{Difficulty-Max}` : Allows user to set a difficulty range
 * `-d {Difficulty}` : Allows user to se a specific difficulty level
 
-### `_get`
+### `cp!get`
 Required Argument :
 * `{Problem ID}` : Problem ID of the particular problem
 
-### `_about`
+### `cp!about`
 Get details of the bot.
 
 ## Examples
