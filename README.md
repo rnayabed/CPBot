@@ -5,7 +5,7 @@ Support for other websites coming soon.
 
 **[Invite Link to add Bot to your server](https://discord.com/api/oauth2/authorize?client_id=711231840484065280&permissions=76800&scope=bot)**
 
-Or you can also build it and run your own instance as well, but you need to have a [Discord Bot Token](https://www.writebots.com/discord-bot-token/).
+Or you can also build it and run your own instance but you need to have a [Discord Bot Token](https://www.writebots.com/discord-bot-token/).
 
 ## Build
 **Make sure you have Maven 3.6.0+ and Java 14+**
