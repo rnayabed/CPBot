@@ -187,19 +187,27 @@ public class CodeForcesProblem extends Thread {
                                 if(eachRoundBox.child(2).text().contains("Problem tags"))
                                 {
                                     Elements tagElements = eachRoundBox.child(3).children();
-                                    output.append("Tags : ");
 
-                                    for(int i =0;i<tagElements.size()-2;i++)
+
+                                    int minus = 1;
+                                    String difficulty = tagElements.get(tagElements.size()-2).text();
+                                    if(difficulty.startsWith("*"))
+                                    {
+                                        minus = 2;
+                                        output.append("Difficulty Rating : ")
+                                                .append(difficulty.substring(1));
+                                    }
+
+                                    output.append("\nTags : ");
+                                    for(int i =0;i<tagElements.size()-minus;i++)
                                     {
                                         output.append(tagElements.get(i).text());
-                                        if(i<tagElements.size()-3)
+                                        if(i<tagElements.size()-(minus+1))
                                         {
                                             output.append(", ");
                                         }
                                     }
 
-                                    output.append("\nDifficulty Rating : ");
-                                    output.append(tagElements.get(tagElements.size()-2).text().substring(1));
                                 }
                             }
 
@@ -446,10 +454,13 @@ public class CodeForcesProblem extends Thread {
 
         String order = "";
         StringBuilder tags = new StringBuilder();
-        for(int i=0;i<args.length;i++)
+        for(int i=1;i<args.length;i+=2)
         {
             if(i == (args.length - 1))
-                return new PageLoadStatus("Invalid argument usage. Check `cp!help`");
+            {
+                if(args[i].equals("-p") || args[i].equals("-d") || args[i].equals("-t") || args[i].equals("-o"))
+                    return new PageLoadStatus("Invalid argument usage. Check `cp!help`");
+            }
 
             switch (args[i]) {
                 case "-p"-> {
@@ -523,9 +534,6 @@ public class CodeForcesProblem extends Thread {
                     } catch (IllegalStateException e) {
                         return new PageLoadStatus("Incorrect `-o` argument usage. Check `cp!help`.");
                     }
-                }
-                default -> {
-                    return new PageLoadStatus("Invalid argument. Check `cp!help`");
                 }
             }
         }
