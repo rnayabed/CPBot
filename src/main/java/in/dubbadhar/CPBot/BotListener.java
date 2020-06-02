@@ -5,10 +5,7 @@ import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.events.DisconnectEvent;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.ReadyEvent;
-import net.dv8tion.jda.api.events.ReconnectedEvent;
+import net.dv8tion.jda.api.events.*;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -22,6 +19,8 @@ import java.util.HashMap;
 public class BotListener extends ListenerAdapter {
 
     HashMap<String,String> config;
+
+    final Source defaultSource = Source.CodeForces;
 
     public BotListener(HashMap<String, String> config) {
         this.config = config;
@@ -40,7 +39,7 @@ public class BotListener extends ListenerAdapter {
     }
 
     @Override
-    public void onReconnect(@NotNull ReconnectedEvent event)
+    public void onResume(@NotNull ResumedEvent event)
     {
         consoleOutput(event);
     }
@@ -74,12 +73,13 @@ public class BotListener extends ListenerAdapter {
 
         String[] args = rawMsg.split(" ");
 
-        if(rawMsg.startsWith("cp!"))
+        if(args[0].startsWith("cp!"))
         {
             consoleOutput(event);
 
-            if (rawMsg.equals("cp!help"))
-                channel.sendMessage("Available Commands\n\n" +
+            switch(args[0])
+            {
+                case "cp!help" -> channel.sendMessage("Available Commands\n\n" +
                         "`cp!list`\n" +
                         "**To get a list of problems**\n" +
                         "**Arguments (Optional)**\n" +
@@ -109,12 +109,9 @@ public class BotListener extends ListenerAdapter {
                         "`cp!list -d 2000 -o diff-asc`\n" +
                         "`cp!random -d 800-1200`\n" +
                         "`cp!get 1A`").queue();
-            else if(rawMsg.startsWith("cp!list"))
-                new CodeForcesProblem(CodeForcesProblem.queryType.LIST, channel, args);
-            else if(rawMsg.startsWith("cp!get"))
-                new CodeForcesProblem(CodeForcesProblem.queryType.GET, channel, args);
-            else if(rawMsg.equals("cp!about"))
-                channel.sendMessage(new MessageBuilder()
+                case "cp!list" -> sendRequest(queryType.LIST, messageReceivedEvent, args);
+                case "cp!get" -> sendRequest(queryType.GET, messageReceivedEvent, args);
+                case "cp!about" -> channel.sendMessage(new MessageBuilder()
                         .setEmbed(new EmbedBuilder()
                                 .setTitle("About")
                                 .setColor(Color.RED)
@@ -128,10 +125,73 @@ public class BotListener extends ListenerAdapter {
                                         "\nVersion : "+config.get("VERSION"))
                                 .build())
                         .build()).queue();
-            else if(rawMsg.startsWith("cp!random"))
-                new CodeForcesProblem(CodeForcesProblem.queryType.RANDOM, channel, args);
+                case "cp!random" -> sendRequest(queryType.RANDOM, messageReceivedEvent, args);
+                case "cp!setsource" -> new preferenceSetter(messageReceivedEvent, args);
+                default -> channel.sendMessage("Command not recognised. Check `cp!help`.").queue();
+            }
+        }
+    }
+
+    private void sendRequest(queryType queryType, MessageReceivedEvent messageReceivedEvent, String[] args)
+    {
+        Source source = getSource(messageReceivedEvent, args);
+        System.out.println(source);
+        if(source!=null)
+        {
+            if(source == Source.CodeForces) new CodeForcesProblem(queryType, messageReceivedEvent, args);
+            else if(source == Source.CodeChef) new CodeChefProblem(queryType, messageReceivedEvent, args);
+        }
+    }
+
+    private Source getSource(MessageReceivedEvent messageReceivedEvent, String[] args)
+    {
+        for(int i = 1;i<args.length;i++)
+        {
+            if(args[i].equals("-source"))
+            {
+                if(i!=(args.length-1))
+                {
+                    if(args[i+1] == null)
+                    {
+                        messageReceivedEvent.getChannel().sendMessage("Invalid usage of `-source` argument. Check `cp!help`.").queue();
+                        return null;
+                    }
+                    else
+                    {
+                        Source s = Source.fromString(args[i+1]);
+                        if(s==null)
+                        {
+                            messageReceivedEvent.getChannel().sendMessage("Invalid usage of `-source` argument. Check `cp!help`.").queue();
+                            return null;
+                        }
+                        else
+                        {
+                            return s;
+                        }
+                    }
+                }
+            }
+        }
+
+        try
+        {
+            Source userPreference = database.getUserPreference(messageReceivedEvent.getMessage().getAuthor().getId());
+            if(userPreference == Source.NO_PREFERENCE)
+            {
+                Source guildPreference = database.getGuildPreference(messageReceivedEvent.getMessage().getAuthor().getId());
+                if(guildPreference == Source.NO_PREFERENCE)
+                    return defaultSource;
+                else
+                    return guildPreference;
+            }
             else
-                channel.sendMessage("Command not recognised. Check `cp!help`.").queue();
+                return userPreference;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            messageReceivedEvent.getChannel().sendMessage("Internal Error Occurred. Contact Developer.").queue();
+            return null;
         }
     }
 
@@ -141,7 +201,7 @@ public class BotListener extends ListenerAdapter {
         if(event instanceof MessageReceivedEvent)
         {
             MessageReceivedEvent messageReceivedEvent = (MessageReceivedEvent) event;
-            System.out.print("Message Received from "+messageReceivedEvent.getMessage().getAuthor());
+            System.out.print("Message Received from "+messageReceivedEvent.getMessage().getAuthor().getAsTag());
             if(messageReceivedEvent.getChannelType().isGuild())
                 System.out.print(", \""+messageReceivedEvent.getGuild().getName()+"\", #"+messageReceivedEvent.getChannel().getName());
             System.out.println("\n"+messageReceivedEvent.getMessage().getContentRaw());

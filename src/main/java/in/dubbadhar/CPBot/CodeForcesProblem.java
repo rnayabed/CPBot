@@ -1,46 +1,265 @@
 package in.dubbadhar.CPBot;
 
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class CodeForcesProblem extends Thread {
-    enum queryType{
-        RANDOM, LIST, GET
+public class CodeForcesProblem extends Problem {
+
+    public CodeForcesProblem(queryType queryType, MessageReceivedEvent messageReceivedEvent, String[] args)
+    {
+        super(queryType, messageReceivedEvent, args);
     }
 
-    queryType qt;
-    MessageChannel channel;
-    String[] args;
-    Document document;
+    @Override
+    void onRANDOMQuery() throws Exception {
+        if(getArgs().length < 2)
+        {
+            sendMessage("You need to mention the problem ID");
+        }
+        else
+        {
+            int index = -1;
 
-    public CodeForcesProblem(queryType queryType, MessageChannel channel, String[] args)
-    {
-        qt = queryType;
-        this.channel = channel;
-        this.args = args;
-        this.channel.sendMessage("Processing ...").queue(message -> {
-            msg = message;
-            start();
-        });
+            String[] args = getArgs();
+            if(args[1].contains("A")) index = args[1].indexOf("A");
+            else if(args[1].contains("B")) index = args[1].indexOf("B");
+            else if(args[1].contains("C")) index = args[1].indexOf("C");
+            else if(args[1].contains("D")) index = args[1].indexOf("D");
+            else if(args[1].contains("E")) index = args[1].indexOf("E");
+            else if(args[1].contains("F")) index = args[1].indexOf("F");
+            else if(args[1].contains("G")) index = args[1].indexOf("G");
+            else if(args[1].contains("H")) index = args[1].indexOf("H");
+            else if(args[1].contains("I")) index = args[1].indexOf("I");
+            else if(args[1].contains("J")) index = args[1].indexOf("J");
+
+            if(index==-1)
+            {
+                sendMessage("Incorrect Problem ID Format");
+            }
+            else
+            {
+                String url = "https://codeforces.com/problemset/problem/"+args[1].substring(0,index)+"/"+args[1].substring(index);
+                loadDocument(url);
+                if(!getDocument().location().equals(url)) sendMessage("No such problem found");
+                else
+                {
+                    StringBuilder output = new StringBuilder();
+                    Element problemStatementDiv = getDocument().getElementsByClass("problem-statement").first();
+                    Element headerClass = problemStatementDiv.getElementsByClass("header").first();
+
+                    String problemTitle = headerClass.getElementsByClass("title").first().text();
+                    String timeLimit = headerClass.getElementsByClass("time-limit").first().text().substring(20);
+                    String memoryLimit = headerClass.getElementsByClass("memory-limit").first().text().substring(22);
+                    String inputType = headerClass.getElementsByClass("input-file").text().substring(6);
+                    String outputType = headerClass.getElementsByClass("output-file").first().text().substring(7);
+
+                    output.append("**Problem ")
+                            .append(args[1])
+                            .append("**\n\nTitle : ")
+                            .append(problemTitle)
+                            .append("\nTime Limit Per Test : ")
+                            .append(timeLimit)
+                            .append("\nMemory Limit Per Test : ")
+                            .append(memoryLimit)
+                            .append("\nInput Type : ")
+                            .append(inputType)
+                            .append("\nOutput Type : ")
+                            .append(outputType)
+                            .append("\n");
+
+                    Elements roundBoxes = getDocument().getElementsByClass("roundbox sidebox");
+                    for(Element eachRoundBox : roundBoxes)
+                    {
+                        if(eachRoundBox.child(2).text().contains("Problem tags"))
+                        {
+                            Elements tagElements = eachRoundBox.child(3).children();
+
+
+                            if(tagElements.size()>1)
+                            {
+                                int minus = 1;
+                                String difficulty = tagElements.get(tagElements.size()-2).text();
+                                if(difficulty.startsWith("*"))
+                                {
+                                    minus = 2;
+                                    output.append("Difficulty Rating : ")
+                                            .append(difficulty.substring(1));
+                                }
+
+                                output.append("\nTags : ");
+                                for(int i =0;i<tagElements.size()-minus;i++)
+                                {
+                                    output.append(tagElements.get(i).text());
+                                    if(i<tagElements.size()-(minus+1))
+                                    {
+                                        output.append(", ");
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    output.append("\n\nLink : ")
+                            .append(getDocument().location());
+
+                    sendMessage(output.toString());
+                    output.setLength(0);
+
+                    Element explanationDiv = problemStatementDiv.child(1);
+
+                    output = formatText(explanationDiv, output);
+
+                    Element inputDiv = problemStatementDiv.getElementsByClass("input-specification").first();
+                    output.append("\n**Input**\n");
+                    output = formatText(inputDiv, output);
+
+                    Element outputDiv = problemStatementDiv.getElementsByClass("output-specification").first();
+                    output.append("\n**Output**\n");
+                    output = formatText(outputDiv, output);
+
+                    Element examplesDiv = problemStatementDiv.getElementsByClass("sample-test").first();
+                    output.append("\n**Examples**\n");
+                    output = formatText(examplesDiv, output);
+
+                    Element noteDiv = problemStatementDiv.getElementsByClass("note").first();
+                    if(noteDiv!=null)
+                    {
+                        output.append("\n**Note**\n");
+                        output = formatText(noteDiv, output);
+                    }
+
+                    sendMessage(output.toString());
+                }
+            }
+        }
+    }
+
+    @Override
+    void onLISTQuery(){
+        PageLoadStatus pageLoadStatus = loadFilteredPage(getArgs());
+        if(pageLoadStatus.isSuccess())
+        {
+            Elements problems = getDocument().getElementsByClass("problems").first().getElementsByTag("tbody").first().getElementsByTag("tr");
+
+
+            if(problems.size() == 1)
+            {
+                sendMessage("No items found with that filter :/");
+            }
+            else
+            {
+                StringBuilder listTable = new StringBuilder();
+
+                String pageNo = getDocument().getElementsByClass("page-index active").first().text();
+
+                listTable.append("```\n___________________________________________________________________________________________________\n" +
+                        "| Problem | Name                                                         | Difficulty | Solved By |\n");
+                for(int i = 1;i<problems.size(); i++)
+                {
+                    Elements problemParts = problems.get(i).getElementsByTag("td");
+                    String problemID = problemParts.get(0).text();
+                    String problemTitle = problemParts.get(1).getElementsByTag("div").first().text();
+                    //String problemTags = problemParts.get(1).getElementsByTag("div").last().text();
+                    String problemDifficulty = problemParts.get(3).text();
+                    String solvedBy = problemParts.get(4).text();
+
+                    listTable.append("| ")
+                            .append(problemID)
+                            .append(" ".repeat((7 - problemID.length())))
+                            .append(" | ")
+                            .append(problemTitle)
+                            .append(" ".repeat((60-problemTitle.length())))
+                            .append(" | ")
+                            .append(problemDifficulty)
+                            .append(" ".repeat(10-problemDifficulty.length()))
+                            .append(" | ")
+                            .append(solvedBy)
+                            .append(" ".repeat(9-solvedBy.length()))
+                            .append(" |\n");
+
+                    if(listTable.length()>1500)
+                    {
+                        sendMessage(listTable.toString()+"\n```");
+                        listTable.setLength(0);
+                        listTable.append("```\n");
+                    }
+                }
+
+                listTable.append("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```");
+
+                listTable.append("\nCurrent Page : ")
+                        .append(pageNo)
+                        .append("\nMax Page [with current filter(s) applied] : ")
+                        .append(getMaximumPages());
+
+                sendMessage(listTable.toString());
+            }
+        }
+        else
+            sendMessage(pageLoadStatus.getErr());
+    }
+
+    @Override
+    void onGETQuery() throws Exception {
+        if(getArgs().length == 1)
+        {
+            loadCodeForcesDefaultProblemSite();
+
+            int maxPages = getMaximumPages();
+            int randomPage = ((int) (Math.random() * maxPages));
+            loadDocument("https://codeforces.com/problemset/page/"+randomPage);
+        }
+        else
+        {
+            PageLoadStatus pageLoadStatus = loadFilteredPage(getArgs());
+
+            if(pageLoadStatus.isSuccess())
+            {
+                int maxPages = getMaximumPages();
+                int randomPage = ((int) (Math.random() * maxPages));
+                PageLoadStatus pageLoadStatus2 = loadFilteredPage(getArgs(), randomPage);
+                if(!pageLoadStatus2.isSuccess())
+                {
+                    sendMessage(pageLoadStatus.getErr());
+                    return;
+                }
+            }
+            else
+            {
+                sendMessage(pageLoadStatus.getErr());
+                return;
+            }
+        }
+
+        Elements problems = getDocument().getElementsByClass("problems").first().getElementsByTag("tbody").first().getElementsByTag("tr");
+        if(problems.size() == 1)
+            sendMessage("No problem found with the filter(s) applied :/");
+        else
+        {
+            int randomProblem = ((int) (Math.random() * problems.size()));
+
+            Elements problemParts = problems.get(randomProblem).getElementsByTag("td");
+            String problemID = problemParts.get(0).text();
+            msg.delete().queue();
+            new CodeForcesProblem(queryType.GET, getMessageReceivedEvent(), new String[]{"cp!get",problemID});
+        }
     }
 
     public void loadCodeForcesDefaultProblemSite() throws Exception
     {
-        if(document==null)
-            document = Jsoup.connect("https://codeforces.com/problemset").get();
-        else if(!document.location().equals("https://codeforces.com/problemset"))
-            document = Jsoup.connect("https://codeforces.com/problemset").get();
+        if(getDocument()==null)
+            loadDocument("https://codeforces.com/problemset");
+        else if(!getDocument().location().equals("https://codeforces.com/problemset"))
+            loadDocument("https://codeforces.com/problemset");
     }
 
     public int getMaximumPages()
     {
         try
         {
-            Elements liElements = document.getElementsByClass("pagination").first().getElementsByTag("li");
+            Elements liElements = getDocument().getElementsByClass("pagination").first().getElementsByTag("li");
             int maxPages;
             if(liElements.last().text().contains("→"))
                 maxPages = Integer.parseInt(liElements.get(liElements.size()-2).text());
@@ -55,248 +274,6 @@ public class CodeForcesProblem extends Thread {
     }
 
     Message msg;
-
-
-    @Override
-    public void run()
-    {
-        try
-        {
-            if(qt == queryType.LIST)
-            {
-                PageLoadStatus pageLoadStatus = loadFilteredPage(args);
-                if(pageLoadStatus.isSuccess())
-                {
-                    Elements problems = document.getElementsByClass("problems").first().getElementsByTag("tbody").first().getElementsByTag("tr");
-
-
-                    if(problems.size() == 1)
-                    {
-                        sendMessage("No items found with that filter :/");
-                    }
-                    else
-                    {
-                        StringBuilder listTable = new StringBuilder();
-
-                        String pageNo = document.getElementsByClass("page-index active").first().text();
-
-                        listTable.append("```\n___________________________________________________________________________________________________\n" +
-                                "| Problem | Name                                                         | Difficulty | Solved By |\n");
-                        for(int i = 1;i<problems.size(); i++)
-                        {
-                            Elements problemParts = problems.get(i).getElementsByTag("td");
-                            String problemID = problemParts.get(0).text();
-                            String problemTitle = problemParts.get(1).getElementsByTag("div").first().text();
-                            //String problemTags = problemParts.get(1).getElementsByTag("div").last().text();
-                            String problemDifficulty = problemParts.get(3).text();
-                            String solvedBy = problemParts.get(4).text();
-
-                            listTable.append("| ")
-                                    .append(problemID)
-                                    .append(" ".repeat((7 - problemID.length())))
-                                    .append(" | ")
-                                    .append(problemTitle)
-                                    .append(" ".repeat((60-problemTitle.length())))
-                                    .append(" | ")
-                                    .append(problemDifficulty)
-                                    .append(" ".repeat(10-problemDifficulty.length()))
-                                    .append(" | ")
-                                    .append(solvedBy)
-                                    .append(" ".repeat(9-solvedBy.length()))
-                                    .append(" |\n");
-
-                            if(listTable.length()>1500)
-                            {
-                                sendMessage(listTable.toString()+"\n```");
-                                listTable.setLength(0);
-                                listTable.append("```\n");
-                            }
-                        }
-
-                        listTable.append("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n```");
-
-                        listTable.append("\nCurrent Page : ")
-                                .append(pageNo)
-                                .append("\nMax Page [with current filter(s) applied] : ")
-                                .append(getMaximumPages());
-
-                        sendMessage(listTable.toString());
-                    }
-                }
-                else
-                    sendMessage(pageLoadStatus.getErr());
-            }
-            else if(qt == queryType.GET)
-            {
-                if(args.length < 2)
-                {
-                    sendMessage("You need to mention the problem ID");
-                }
-                else
-                {
-                    int index = -1;
-                    if(args[1].contains("A")) index = args[1].indexOf("A");
-                    else if(args[1].contains("B")) index = args[1].indexOf("B");
-                    else if(args[1].contains("C")) index = args[1].indexOf("C");
-                    else if(args[1].contains("D")) index = args[1].indexOf("D");
-                    else if(args[1].contains("E")) index = args[1].indexOf("E");
-                    else if(args[1].contains("F")) index = args[1].indexOf("F");
-                    else if(args[1].contains("G")) index = args[1].indexOf("G");
-                    else if(args[1].contains("H")) index = args[1].indexOf("H");
-                    else if(args[1].contains("I")) index = args[1].indexOf("I");
-                    else if(args[1].contains("J")) index = args[1].indexOf("J");
-
-                    if(index==-1)
-                    {
-                        sendMessage("Incorrect Problem ID Format");
-                    }
-                    else
-                    {
-                        String url = "https://codeforces.com/problemset/problem/"+args[1].substring(0,index)+"/"+args[1].substring(index);
-                        document = Jsoup.connect(url).get();
-                        if(!document.location().equals(url)) sendMessage("No such problem found");
-                        else
-                        {
-                            StringBuilder output = new StringBuilder();
-                            Element problemStatementDiv = document.getElementsByClass("problem-statement").first();
-                            Element headerClass = problemStatementDiv.getElementsByClass("header").first();
-
-                            String problemTitle = headerClass.getElementsByClass("title").first().text();
-                            String timeLimit = headerClass.getElementsByClass("time-limit").first().text().substring(20);
-                            String memoryLimit = headerClass.getElementsByClass("memory-limit").first().text().substring(22);
-                            String inputType = headerClass.getElementsByClass("input-file").text().substring(6);
-                            String outputType = headerClass.getElementsByClass("output-file").first().text().substring(7);
-
-                            output.append("**Problem ")
-                                    .append(args[1])
-                                    .append("**\n\nTitle : ")
-                                    .append(problemTitle)
-                                    .append("\nTime Limit Per Test : ")
-                                    .append(timeLimit)
-                                    .append("\nMemory Limit Per Test : ")
-                                    .append(memoryLimit)
-                                    .append("\nInput Type : ")
-                                    .append(inputType)
-                                    .append("\nOutput Type : ")
-                                    .append(outputType)
-                                    .append("\n");
-
-                            Elements roundBoxes = document.getElementsByClass("roundbox sidebox");
-                            for(Element eachRoundBox : roundBoxes)
-                            {
-                                if(eachRoundBox.child(2).text().contains("Problem tags"))
-                                {
-                                    Elements tagElements = eachRoundBox.child(3).children();
-
-
-                                    int minus = 1;
-                                    String difficulty = tagElements.get(tagElements.size()-2).text();
-                                    if(difficulty.startsWith("*"))
-                                    {
-                                        minus = 2;
-                                        output.append("Difficulty Rating : ")
-                                                .append(difficulty.substring(1));
-                                    }
-
-                                    output.append("\nTags : ");
-                                    for(int i =0;i<tagElements.size()-minus;i++)
-                                    {
-                                        output.append(tagElements.get(i).text());
-                                        if(i<tagElements.size()-(minus+1))
-                                        {
-                                            output.append(", ");
-                                        }
-                                    }
-
-                                }
-                            }
-
-                            output.append("\n\nLink : ")
-                                    .append(document.location());
-
-                            sendMessage(output.toString());
-                            output.setLength(0);
-
-                            Element explanationDiv = problemStatementDiv.child(1);
-
-                            output = formatText(explanationDiv, output);
-
-                            Element inputDiv = problemStatementDiv.getElementsByClass("input-specification").first();
-                            output.append("\n**Input**\n");
-                            output = formatText(inputDiv, output);
-
-                            Element outputDiv = problemStatementDiv.getElementsByClass("output-specification").first();
-                            output.append("\n**Output**\n");
-                            output = formatText(outputDiv, output);
-
-                            Element examplesDiv = problemStatementDiv.getElementsByClass("sample-test").first();
-                            output.append("\n**Examples**\n");
-                            output = formatText(examplesDiv, output);
-
-                            Element noteDiv = problemStatementDiv.getElementsByClass("note").first();
-                            if(noteDiv!=null)
-                            {
-                                output.append("\n**Note**\n");
-                                output = formatText(noteDiv, output);
-                            }
-
-                            sendMessage(output.toString());
-                        }
-                    }
-                }
-            }
-            else if(qt == queryType.RANDOM)
-            {
-                if(args.length == 1)
-                {
-                    loadCodeForcesDefaultProblemSite();
-
-                    int maxPages = getMaximumPages();
-                    int randomPage = ((int) (Math.random() * maxPages));
-                    document = Jsoup.connect("https://codeforces.com/problemset/page/"+randomPage).get();
-                }
-                else
-                {
-                    PageLoadStatus pageLoadStatus = loadFilteredPage(args);
-
-                    if(pageLoadStatus.isSuccess())
-                    {
-                        int maxPages = getMaximumPages();
-                        int randomPage = ((int) (Math.random() * maxPages));
-                        PageLoadStatus pageLoadStatus2 = loadFilteredPage(args, randomPage);
-                        if(!pageLoadStatus2.isSuccess())
-                        {
-                            sendMessage(pageLoadStatus.getErr());
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        sendMessage(pageLoadStatus.getErr());
-                        return;
-                    }
-                }
-
-                Elements problems = document.getElementsByClass("problems").first().getElementsByTag("tbody").first().getElementsByTag("tr");
-                if(problems.size() == 1)
-                    sendMessage("No problem found with the filter(s) applied :/");
-                else
-                {
-                    int randomProblem = ((int) (Math.random() * problems.size()));
-
-                    Elements problemParts = problems.get(randomProblem).getElementsByTag("td");
-                    String problemID = problemParts.get(0).text();
-                    msg.delete().queue();
-                    new CodeForcesProblem(CodeForcesProblem.queryType.GET, channel, new String[]{"cp!get",problemID});
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            sendMessage("Internal Error Occurred. Contact developer.");
-            e.printStackTrace();
-        }
-    }
 
     public StringBuilder formatText(Element parent, StringBuilder output)
     {
@@ -357,51 +334,6 @@ public class CodeForcesProblem extends Thread {
         return output;
     }
 
-    public String formatLaTeX(String text)
-    {
-        int i;
-
-        //pmod
-        while((i = text.indexOf("\\pmod{"))>-1)
-        {
-            int j = text.indexOf("}");
-            text = text.substring(0,i)+"(mod "+text.substring(i+6,j)+")"+text.substring(j+1);
-        }
-
-        //frac
-        while((i = text.indexOf("\\frac{"))>-1)
-        {
-            int j = text.indexOf("}{");
-            text = text.substring(0,i)+text.substring(i+6,j)+"/"+text.substring(j+2);
-            int k = text.indexOf("}");
-            text = text.substring(0,k)+text.substring(k+1);
-        }
-
-
-        text = text.replace("*","\\*") //Prevent unnecessary formatting
-                .replace("$$$","*")//$$$ to italics
-                .replace("\\end{matrix}","```\n") //Matrix
-                .replace("\\begin{matrix}","\n```\n") //Matrix
-                .replace("\\\\","\n") //Matrix
-                .replace("\\pm","±") // Plus Minus
-                .replace("\\times","×") // multiply
-                .replace("\\equiv","≡") // Equivalent
-                .replace("\\neq","≠") //Not Equal To
-                .replace("\\div","÷") // Division
-                .replace("\\leq","≤") //Less Than Or Equal To
-                .replace("\\le","≤") // Less Than Or Equal To
-                .replace("\\geq","≥") // Greater Than Or Equal To
-                .replace("\\ge","≥") // Greater Than Or Equal To
-                .replace("\\sim","∼") // Tilde
-                .replace("^\\circ","°") // Degree
-                .replace("\\approx","≈") // Approximate
-                .replace("\\mu","µ") // Meu
-                .replace("\\ldots","…") // Three Dots
-                .replace("\\cdot","⋅"); // Multiplication Dot
-
-        return text;
-    }
-
     public String searchForImage(Element element)
     {
         Element img = element.getElementsByTag("img").first();
@@ -410,23 +342,6 @@ public class CodeForcesProblem extends Thread {
         else
         {
             return img.attr("src");
-        }
-    }
-
-    boolean firstMessage = true;
-    public void sendMessage(String message)
-    {
-        if(message.length()>0)
-        {
-            if(firstMessage)
-            {
-                msg.editMessage(message).queue();
-                firstMessage = false;
-            }
-            else
-            {
-                this.channel.sendMessage(message).queue();
-            }
         }
     }
 
@@ -539,13 +454,9 @@ public class CodeForcesProblem extends Thread {
         }
 
         if(pageNo==0)
-        {
-            document = Jsoup.connect("https://codeforces.com/problemset"+order+"?tags="+tags.toString()).get();
-        }
+            loadDocument("https://codeforces.com/problemset"+order+"?tags="+tags.toString());
         else
-        {
-            document = Jsoup.connect("https://codeforces.com/problemset/page/"+pageNo+order+"?tags="+tags.toString()).get();
-        }
+            loadDocument("https://codeforces.com/problemset/page/"+pageNo+order+"?tags="+tags.toString());
 
         return new PageLoadStatus(true);
     }

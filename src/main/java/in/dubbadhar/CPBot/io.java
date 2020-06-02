@@ -6,11 +6,16 @@ import java.util.HashMap;
 public class io {
     public static HashMap<String, String> getConfig() throws Exception
     {
+        return readPropertiesFile("config.properties");
+    }
+
+    public static HashMap<String, String> readPropertiesFile(String fileName) throws Exception
+    {
         HashMap<String, String> config = new HashMap<>();
 
         StringBuilder configRaw = new StringBuilder();
         int c;
-        FileReader fileReader = new FileReader(new File(io.class.getResource("config.properties").toExternalForm().substring(5)));
+        FileReader fileReader = new FileReader(new File(io.class.getResource(fileName).toExternalForm().substring(5)));
         while((c = fileReader.read()) != -1)
         {
             configRaw.append((char)c);
@@ -24,18 +29,26 @@ public class io {
         for(String eachLine : configStr.split(lineBreakChar))
         {
             String[] conf = eachLine.split(" = ");
-            config.put(conf[0],conf[1]);
+            if(conf.length==2) // empty file if 1
+            {
+                config.put(conf[0],conf[1]);
+            }
         }
 
         return config;
     }
 
-    public static void updateConfig(HashMap<String,String> config) throws Exception
+    public static void updateConfig(HashMap<String, String> config) throws Exception
     {
-        FileWriter fileWriter = new FileWriter(new File(io.class.getResource("config.properties").toExternalForm().substring(5)));
-        for(String eachKey : config.keySet())
+        updatePropertiesFile(config, "config.properties");
+    }
+
+    public static void updatePropertiesFile(HashMap<String,String> properties, String fileName) throws Exception
+    {
+        FileWriter fileWriter = new FileWriter(new File(io.class.getResource(fileName).toExternalForm().substring(5)));
+        for(String eachKey : properties.keySet())
         {
-            fileWriter.write(eachKey+" = "+config.get(eachKey)+"\n");
+            fileWriter.write(eachKey+" = "+properties.get(eachKey)+"\n");
         }
         fileWriter.close();
     }
