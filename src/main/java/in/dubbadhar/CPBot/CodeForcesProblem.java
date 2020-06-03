@@ -235,7 +235,7 @@ public class CodeForcesProblem extends Problem {
 
             Elements problemParts = problems.get(randomProblem).getElementsByTag("td");
             String problemID = problemParts.get(0).text();
-            msg.delete().queue();
+            deleteFirstMessage();
             new CodeForcesProblem(queryType.GET, getMessageReceivedEvent(), new String[]{"cp!get",problemID});
         }
     }
@@ -265,8 +265,6 @@ public class CodeForcesProblem extends Problem {
             return 1;
         }
     }
-
-    Message msg;
 
     public StringBuilder formatText(Element parent, StringBuilder output)
     {

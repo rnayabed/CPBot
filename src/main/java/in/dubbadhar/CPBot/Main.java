@@ -69,7 +69,7 @@ public class Main {
         {
             System.out.println("\nInit database ...");
             database.init();
-            System.out.println("Done ...\nStarting bot ...");
+            System.out.println("... Done!\nStarting bot ...");
             DefaultShardManagerBuilder.createDefault(config.get("DISCORD_BOT_TOKEN"))
                     .addEventListeners(new BotListener(config))
                     .build();

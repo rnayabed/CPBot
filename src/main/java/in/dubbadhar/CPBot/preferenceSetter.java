@@ -1,9 +1,6 @@
 package in.dubbadhar.CPBot;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-import java.util.HashMap;
-
-
 public class preferenceSetter extends Reply {
     public preferenceSetter(MessageReceivedEvent messageReceivedEvent, String[] args)
     {
@@ -23,9 +20,7 @@ public class preferenceSetter extends Reply {
                     sendMessage("Successfully changed default preference to "+args[2]+"!");
                 }
                 else
-                {
                     sendMessage("Incorrect argument usage. Check `cp!help`.");
-                }
             }
             else if(args[1].equals("-server"))
             {
@@ -39,20 +34,16 @@ public class preferenceSetter extends Reply {
                             sendMessage("Successfully changed default preference to "+args[2]+"!");
                         }
                         else
-                        {
                             sendMessage("Incorrect argument usage. Check `cp!help`.");
-                        }
                     }
                     else
-                    {
                         sendMessage("Only the owner of this server can set a default source.");
-                    }
                 }
                 else
-                {
                     sendMessage("You're not even in a server. Try using the `-myself` argument if you want to set for yourself.");
-                }
             }
+            else
+                sendMessage("Incorrect usage of `cp!setsource`. Check `cp!help`.");
         }
         else
         {

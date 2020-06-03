@@ -135,7 +135,6 @@ public class BotListener extends ListenerAdapter {
     private void sendRequest(queryType queryType, MessageReceivedEvent messageReceivedEvent, String[] args)
     {
         Source source = getSource(messageReceivedEvent, args);
-        System.out.println(source);
         if(source!=null)
         {
             if(source == Source.CodeForces) new CodeForcesProblem(queryType, messageReceivedEvent, args);

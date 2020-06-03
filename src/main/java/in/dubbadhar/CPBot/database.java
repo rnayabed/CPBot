@@ -14,7 +14,6 @@ public class database {
     {
         Class.forName("org.sqlite.JDBC");
         String fileName = database.class.getResource("source.preferences.db").toExternalForm().replace("file:/","");
-        System.out.println(fileName);
         connection = DriverManager.getConnection("jdbc:sqlite:"+fileName);
     }
 

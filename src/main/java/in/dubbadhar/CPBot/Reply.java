@@ -14,12 +14,22 @@ abstract class Reply extends Thread{
     private String[] args;
     private Document document = null;
     private boolean isFirstMessage = true;
-    private Message firstMessage;
+    private Message firstMessage = null;
 
     public Reply(queryType queryType, MessageReceivedEvent messageReceivedEvent, String[] args)
     {
         this.queryType = queryType;
         init(messageReceivedEvent, args);
+    }
+
+    public Message getFirstMessage()
+    {
+        return firstMessage;
+    }
+
+    public void deleteFirstMessage()
+    {
+        firstMessage.delete().queue();
     }
 
     public Reply(MessageReceivedEvent messageReceivedEvent, String[] args)
@@ -32,10 +42,13 @@ abstract class Reply extends Thread{
         this.messageReceivedEvent = messageReceivedEvent;
         this.messageChannel = messageReceivedEvent.getChannel();
         this.args = args;
-        this.messageChannel.sendMessage("Processing ...").queue(message -> {
-            firstMessage = message;
-            start();
-        });
+        if(firstMessage==null)
+        {
+            this.messageChannel.sendMessage("Processing ...").queue(message -> {
+                firstMessage = message;
+                start();
+            });
+        }
     }
 
     public String[] getArgs()
