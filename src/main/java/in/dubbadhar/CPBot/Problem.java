@@ -1,6 +1,5 @@
 package in.dubbadhar.CPBot;
 
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public abstract class Problem extends Reply{

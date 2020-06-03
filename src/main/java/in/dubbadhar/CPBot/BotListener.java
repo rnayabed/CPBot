@@ -13,7 +13,10 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 
 public class BotListener extends ListenerAdapter {
@@ -137,9 +140,23 @@ public class BotListener extends ListenerAdapter {
         Source source = getSource(messageReceivedEvent, args);
         if(source!=null)
         {
-            if(source == Source.CodeForces) new CodeForcesProblem(queryType, messageReceivedEvent, args);
-            else if(source == Source.CodeChef) new CodeChefProblem(queryType, messageReceivedEvent, args);
+            System.out.println(Arrays.toString(argsWithoutSourceArg(args)));
+            if(source == Source.CodeForces) new CodeForcesProblem(queryType, messageReceivedEvent, argsWithoutSourceArg(args));
+            else if(source == Source.CodeChef) new CodeChefProblem(queryType, messageReceivedEvent, argsWithoutSourceArg(args));
         }
+    }
+
+    public String[] argsWithoutSourceArg(String[] args)
+    {
+        List<String> list = new ArrayList<>();
+        for(int i = 0;i<args.length;i++)
+        {
+            if(args[i].equals("-source"))
+                args[i+1] = "";
+            else if(!args[i].equals(""))
+                list.add(args[i]);
+        }
+        return list.toArray(new String[0]);
     }
 
     private Source getSource(MessageReceivedEvent messageReceivedEvent, String[] args)
