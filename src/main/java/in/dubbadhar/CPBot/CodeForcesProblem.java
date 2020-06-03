@@ -13,125 +13,118 @@ public class CodeForcesProblem extends Problem {
     }
 
     @Override
-    void onRANDOMQuery() throws Exception {
-        if(getArgs().length < 2)
+    void onGETQuery() throws Exception {
+        int index = -1;
+
+        String[] args = getArgs();
+        if(args[1].contains("A")) index = args[1].indexOf("A");
+        else if(args[1].contains("B")) index = args[1].indexOf("B");
+        else if(args[1].contains("C")) index = args[1].indexOf("C");
+        else if(args[1].contains("D")) index = args[1].indexOf("D");
+        else if(args[1].contains("E")) index = args[1].indexOf("E");
+        else if(args[1].contains("F")) index = args[1].indexOf("F");
+        else if(args[1].contains("G")) index = args[1].indexOf("G");
+        else if(args[1].contains("H")) index = args[1].indexOf("H");
+        else if(args[1].contains("I")) index = args[1].indexOf("I");
+        else if(args[1].contains("J")) index = args[1].indexOf("J");
+
+        if(index==-1)
         {
-            sendMessage("You need to mention the problem ID");
+            sendMessage("Incorrect Problem ID Format");
         }
         else
         {
-            int index = -1;
-
-            String[] args = getArgs();
-            if(args[1].contains("A")) index = args[1].indexOf("A");
-            else if(args[1].contains("B")) index = args[1].indexOf("B");
-            else if(args[1].contains("C")) index = args[1].indexOf("C");
-            else if(args[1].contains("D")) index = args[1].indexOf("D");
-            else if(args[1].contains("E")) index = args[1].indexOf("E");
-            else if(args[1].contains("F")) index = args[1].indexOf("F");
-            else if(args[1].contains("G")) index = args[1].indexOf("G");
-            else if(args[1].contains("H")) index = args[1].indexOf("H");
-            else if(args[1].contains("I")) index = args[1].indexOf("I");
-            else if(args[1].contains("J")) index = args[1].indexOf("J");
-
-            if(index==-1)
-            {
-                sendMessage("Incorrect Problem ID Format");
-            }
+            String url = "https://codeforces.com/problemset/problem/"+args[1].substring(0,index)+"/"+args[1].substring(index);
+            loadDocument(url);
+            if(!getDocument().location().equals(url)) sendMessage("No such problem found");
             else
             {
-                String url = "https://codeforces.com/problemset/problem/"+args[1].substring(0,index)+"/"+args[1].substring(index);
-                loadDocument(url);
-                if(!getDocument().location().equals(url)) sendMessage("No such problem found");
-                else
+                StringBuilder output = new StringBuilder();
+                Element problemStatementDiv = getDocument().getElementsByClass("problem-statement").first();
+                Element headerClass = problemStatementDiv.getElementsByClass("header").first();
+
+                String problemTitle = headerClass.getElementsByClass("title").first().text();
+                String timeLimit = headerClass.getElementsByClass("time-limit").first().text().substring(20);
+                String memoryLimit = headerClass.getElementsByClass("memory-limit").first().text().substring(22);
+                String inputType = headerClass.getElementsByClass("input-file").text().substring(6);
+                String outputType = headerClass.getElementsByClass("output-file").first().text().substring(7);
+
+                output.append("**Problem ")
+                        .append(args[1])
+                        .append("**\n\nTitle : ")
+                        .append(problemTitle)
+                        .append("\nTime Limit Per Test : ")
+                        .append(timeLimit)
+                        .append("\nMemory Limit Per Test : ")
+                        .append(memoryLimit)
+                        .append("\nInput Type : ")
+                        .append(inputType)
+                        .append("\nOutput Type : ")
+                        .append(outputType)
+                        .append("\n");
+
+                Elements roundBoxes = getDocument().getElementsByClass("roundbox sidebox");
+                for(Element eachRoundBox : roundBoxes)
                 {
-                    StringBuilder output = new StringBuilder();
-                    Element problemStatementDiv = getDocument().getElementsByClass("problem-statement").first();
-                    Element headerClass = problemStatementDiv.getElementsByClass("header").first();
-
-                    String problemTitle = headerClass.getElementsByClass("title").first().text();
-                    String timeLimit = headerClass.getElementsByClass("time-limit").first().text().substring(20);
-                    String memoryLimit = headerClass.getElementsByClass("memory-limit").first().text().substring(22);
-                    String inputType = headerClass.getElementsByClass("input-file").text().substring(6);
-                    String outputType = headerClass.getElementsByClass("output-file").first().text().substring(7);
-
-                    output.append("**Problem ")
-                            .append(args[1])
-                            .append("**\n\nTitle : ")
-                            .append(problemTitle)
-                            .append("\nTime Limit Per Test : ")
-                            .append(timeLimit)
-                            .append("\nMemory Limit Per Test : ")
-                            .append(memoryLimit)
-                            .append("\nInput Type : ")
-                            .append(inputType)
-                            .append("\nOutput Type : ")
-                            .append(outputType)
-                            .append("\n");
-
-                    Elements roundBoxes = getDocument().getElementsByClass("roundbox sidebox");
-                    for(Element eachRoundBox : roundBoxes)
+                    if(eachRoundBox.child(2).text().contains("Problem tags"))
                     {
-                        if(eachRoundBox.child(2).text().contains("Problem tags"))
+                        Elements tagElements = eachRoundBox.child(3).children();
+
+
+                        if(tagElements.size()>1)
                         {
-                            Elements tagElements = eachRoundBox.child(3).children();
-
-
-                            if(tagElements.size()>1)
+                            int minus = 1;
+                            String difficulty = tagElements.get(tagElements.size()-2).text();
+                            if(difficulty.startsWith("*"))
                             {
-                                int minus = 1;
-                                String difficulty = tagElements.get(tagElements.size()-2).text();
-                                if(difficulty.startsWith("*"))
-                                {
-                                    minus = 2;
-                                    output.append("Difficulty Rating : ")
-                                            .append(difficulty.substring(1));
-                                }
+                                minus = 2;
+                                output.append("Difficulty Rating : ")
+                                        .append(difficulty.substring(1));
+                            }
 
-                                output.append("\nTags : ");
-                                for(int i =0;i<tagElements.size()-minus;i++)
+                            output.append("\nTags : ");
+                            for(int i =0;i<tagElements.size()-minus;i++)
+                            {
+                                output.append(tagElements.get(i).text());
+                                if(i<tagElements.size()-(minus+1))
                                 {
-                                    output.append(tagElements.get(i).text());
-                                    if(i<tagElements.size()-(minus+1))
-                                    {
-                                        output.append(", ");
-                                    }
+                                    output.append(", ");
                                 }
                             }
                         }
                     }
-
-                    output.append("\n\nLink : ")
-                            .append(getDocument().location());
-
-                    sendMessage(output.toString());
-                    output.setLength(0);
-
-                    Element explanationDiv = problemStatementDiv.child(1);
-
-                    output = formatText(explanationDiv, output);
-
-                    Element inputDiv = problemStatementDiv.getElementsByClass("input-specification").first();
-                    output.append("\n**Input**\n");
-                    output = formatText(inputDiv, output);
-
-                    Element outputDiv = problemStatementDiv.getElementsByClass("output-specification").first();
-                    output.append("\n**Output**\n");
-                    output = formatText(outputDiv, output);
-
-                    Element examplesDiv = problemStatementDiv.getElementsByClass("sample-test").first();
-                    output.append("\n**Examples**\n");
-                    output = formatText(examplesDiv, output);
-
-                    Element noteDiv = problemStatementDiv.getElementsByClass("note").first();
-                    if(noteDiv!=null)
-                    {
-                        output.append("\n**Note**\n");
-                        output = formatText(noteDiv, output);
-                    }
-
-                    sendMessage(output.toString());
                 }
+
+                output.append("\n\nLink : ")
+                        .append(getDocument().location());
+
+                sendMessage(output.toString());
+                output.setLength(0);
+
+                Element explanationDiv = problemStatementDiv.child(1);
+
+                output = formatText(explanationDiv, output);
+
+                Element inputDiv = problemStatementDiv.getElementsByClass("input-specification").first();
+                output.append("\n**Input**\n");
+                output = formatText(inputDiv, output);
+
+                Element outputDiv = problemStatementDiv.getElementsByClass("output-specification").first();
+                output.append("\n**Output**\n");
+                output = formatText(outputDiv, output);
+
+                Element examplesDiv = problemStatementDiv.getElementsByClass("sample-test").first();
+                output.append("\n**Examples**\n");
+                output = formatText(examplesDiv, output);
+
+                Element noteDiv = problemStatementDiv.getElementsByClass("note").first();
+                if(noteDiv!=null)
+                {
+                    output.append("\n**Note**\n");
+                    output = formatText(noteDiv, output);
+                }
+
+                sendMessage(output.toString());
             }
         }
     }
@@ -202,7 +195,7 @@ public class CodeForcesProblem extends Problem {
     }
 
     @Override
-    void onGETQuery() throws Exception {
+    void onRANDOMQuery() throws Exception {
         if(getArgs().length == 1)
         {
             loadCodeForcesDefaultProblemSite();

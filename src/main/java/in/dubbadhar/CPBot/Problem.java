@@ -13,7 +13,12 @@ public abstract class Problem extends Reply{
         {
             case RANDOM -> onRANDOMQuery();
             case LIST -> onLISTQuery();
-            case GET -> onGETQuery();
+            case GET -> {
+                if(getArgs().length<2)
+                    sendMessage("You need to mention the Problem ID");
+                else
+                    onGETQuery();
+            }
         }
     }
 
